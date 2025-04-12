@@ -1,0 +1,5 @@
+kagglehub
+pandas
+opencv-python
+mediapipe
+numpy
