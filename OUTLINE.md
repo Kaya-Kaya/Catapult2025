@@ -1,4 +1,4 @@
-# Project Title
+# SwingAI
 
 ## Outline
 Golf Assistant with the following workflow:
