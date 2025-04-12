@@ -5,7 +5,7 @@ import os
 import shutil
 
 DATASET_NAME = "dardarman1/golfing-posture"
-SUBPATH = "CUSTOM DATASET/SIDE VIEW"
+SUBPATH = "CUSTOM DATASET/BACK VIEW"
 FRAMES_OUTPUT = "Data"
 
 def download_data() -> str:
