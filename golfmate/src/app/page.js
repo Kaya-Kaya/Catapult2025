@@ -1,6 +1,9 @@
 "use client";
 import { useState, useRef } from 'react';
 import Head from 'next/head';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 export default function Home() {
   const [file, setFile] = useState(null);
@@ -53,24 +56,100 @@ export default function Home() {
     if (!file) return;
     
     setIsAnalyzing(true);
-    
+    setError(null);
+
     try {
+      const formData = new FormData();
+      formData.append('video', file);
+
       const response = await fetch('/api/analyze-swing', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filename: file.name,
-        }),
+        body: formData,
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to analyze swing');
-      }
-      
+
       const data = await response.json();
-      setFeedback(data.feedback);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to analyze swing');
+      }
+
+      const scores = data.scores;
+
+      const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+      const prompt = `
+      You are a golfing expert who understands the theory of optimal golf swing mechanics.
+      You are also a golf coach who can explain the theory to a beginner golfer.
+      Based on the following scores (each between 0.0 and 1.0), provide detailed and constructive feedback on the golfer's swing in the following structured format:
+      - Posture: [Feedback on posture]
+      - Swing Path: [Feedback on swing path]
+      - Impact: [Feedback on impact]
+      - Follow Through: [Feedback on follow-through]
+      - Recommendations: [List of 3-5 specific recommendations to improve the swing]
+
+      Scores:
+      Ball Position: ${scores.ball_position}
+      - Description: The position of the ball in relation to the golfer's stance.
+      Iron Stance: ${scores.iron_stance}
+      - Description: The stance of the golfer when using an iron club.
+      Elbow Posture Backswing: ${scores.elbow_backswing}
+      - Description: The position of the elbows during the backswing.
+      Elbow Posture Frontswing: ${scores.elbow_frontswing}
+      - Description: The position of the elbows during the front swing.
+      If the golfer is putting:
+      Putting Stance: ${scores.putting_stance ?? 'N/A'}
+      - Description: The stance of the golfer when putting.
+      If the golfer is chipping:
+      Chipping Stance: ${scores.chipping_stance ?? 'N/A'}
+      - Description: The stance of the golfer when chipping.
+      `;
+
+      const result = await model.generateContent({
+        contents: [
+          {
+            role: 'user',
+            parts: [prompt],
+          },
+        ],
+      });
+
+      const feedbackText = result.candidates[0].content.parts[0].text;
+
+      // Parse the feedback into the expected structure
+      const parsedFeedback = {
+        posture: '',
+        swing: '',
+        impact: '',
+        followThrough: '',
+        recommendations: [],
+      };
+
+      const lines = feedbackText.split('\n');
+      let currentSection = '';
+      for (const line of lines) {
+        if (line.startsWith('- Posture:')) {
+          currentSection = 'posture';
+          parsedFeedback.posture = line.replace('- Posture:', '').trim();
+        } else if (line.startsWith('- Swing Path:')) {
+          currentSection = 'swing';
+          parsedFeedback.swing = line.replace('- Swing Path:', '').trim();
+        } else if (line.startsWith('- Impact:')) {
+          currentSection = 'impact';
+          parsedFeedback.impact = line.replace('- Impact:', '').trim();
+        } else if (line.startsWith('- Follow Through:')) {
+          currentSection = 'followThrough';
+          parsedFeedback.followThrough = line.replace('- Follow Through:', '').trim();
+        } else if (line.startsWith('- Recommendations:')) {
+          currentSection = 'recommendations';
+        } else if (currentSection === 'recommendations' && line.trim().startsWith('-')) {
+          parsedFeedback.recommendations.push(line.replace('-', '').trim());
+        } else if (currentSection && line.trim()) {
+          parsedFeedback[currentSection] += ' ' + line.trim();
+        }
+      }
+
+      setFeedback(parsedFeedback);
     } catch (err) {
       console.error('Error analyzing swing:', err);
       setError('There was an error analyzing your swing. Please try again.');
@@ -209,7 +288,7 @@ export default function Home() {
 
       <footer className="bg-gray-800 text-white mt-20 py-6">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-gray-400">&copy; {new Date().getFullYear()} GolfMate. All rights reserved.</p>
+          <p className="text-gray-400">© {new Date().getFullYear()} GolfMate. All rights reserved.</p>
         </div>
       </footer>
     </div>
