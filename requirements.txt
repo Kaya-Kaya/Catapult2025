@@ -1,5 +1,8 @@
 kagglehub
+python-dotenv
 pandas
 opencv-python
 mediapipe
 numpy
+torch
+google-generativeai
