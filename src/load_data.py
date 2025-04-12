@@ -17,7 +17,6 @@ def process_data(data_path: str):
 
 def run() -> None:
     data_path = Path(download_data()) / Path(SUBPATH)
-    print(data_path)
     process_data(data_path)
 
 if __name__ == "__main__":
