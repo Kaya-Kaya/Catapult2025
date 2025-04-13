@@ -26,7 +26,7 @@ def run() -> None:
     full_dataset_path = download_data()
     data_path = Path(full_dataset_path) / Path(SUBPATH)
     process_data(data_path)
-    #shutil.rmtree(full_dataset_path)
+    shutil.rmtree(full_dataset_path)
 
 if __name__ == "__main__":
     run()
