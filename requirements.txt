@@ -11,3 +11,4 @@ Flask
 pytest-shutil
 matplotlib
 scikit-learn
+torchmetrics
