@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef } from 'react';
 import Head from 'next/head';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import {GoogleGenAI} from '@google/genai';
 
 const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
@@ -57,12 +57,12 @@ export default function Home() {
     
     setIsAnalyzing(true);
     setError(null);
-
+  
     try {
       const formData = new FormData();
       formData.append('video', file);
 
-      const response = await fetch('/api/analyze-swing', {
+      /*const response = await fetch('/api/analyze-swing', {
         method: 'POST',
         body: formData,
       });
@@ -73,67 +73,58 @@ export default function Home() {
         throw new Error(data.error || 'Failed to analyze swing');
       }
 
-      const scores = data.scores;
+      const scores = data.scores;*/
 
-      const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
+      const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+  
       const prompt = `
       You are a golfing expert who understands the theory of optimal golf swing mechanics.
       You are also a golf coach who can explain the theory to a beginner golfer.
-      Based on the following scores (each between 0.0 and 1.0), provide detailed and constructive feedback on the golfer's swing in the following structured format:
-      - Posture: [Feedback on posture]
-      - Swing Path: [Feedback on swing path]
-      - Impact: [Feedback on impact]
-      - Follow Through: [Feedback on follow-through]
+      Do not be corny and be professional. Make your response 200 words max.
+      Based on the following scores (each between 0.0 and 1.0), provide detailed and constructive feedback on the golfer's swing in the following structured format (follow it exactly):
+      - Posture: [Feedback on posture]\\n
+      - Swing Path: [Feedback on swing path]\\n
+      - Impact: [Feedback on impact]\\n
+      - Follow Through: [Feedback on follow-through]\\n
       - Recommendations: [List of 3-5 specific recommendations to improve the swing]
-
+  
       Scores:
-      Ball Position: ${scores.ball_position}
+      Ball Position: 1.0
       - Description: The position of the ball in relation to the golfer's stance.
-      Iron Stance: ${scores.iron_stance}
-      - Description: The stance of the golfer when using an iron club.
-      Elbow Posture Backswing: ${scores.elbow_backswing}
+      Drive Stance: 1.0
+      - Description: The stance of the golfer when using a driver.
+      Elbow Posture Backswing: 1.0
       - Description: The position of the elbows during the backswing.
-      Elbow Posture Frontswing: ${scores.elbow_frontswing}
+      Elbow Posture Frontswing: 1.0
       - Description: The position of the elbows during the front swing.
-      If the golfer is putting:
-      Putting Stance: ${scores.putting_stance ?? 'N/A'}
-      - Description: The stance of the golfer when putting.
-      If the golfer is chipping:
-      Chipping Stance: ${scores.chipping_stance ?? 'N/A'}
-      - Description: The stance of the golfer when chipping.
       `;
-
-      const result = await model.generateContent({
-        contents: [
-          {
-            role: 'user',
-            parts: [prompt],
-          },
-        ],
+  
+      const result = await ai.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: prompt,
       });
-
-      const feedbackText = result.candidates[0].content.parts[0].text;
-
-      // Parse the feedback into the expected structure
+      
+      const feedbackText = result.text;
+      
+      // Parse the feedback into sections
       const parsedFeedback = {
         posture: '',
-        swing: '',
+        swingPath: '',
         impact: '',
         followThrough: '',
-        recommendations: [],
+        recommendations: []
       };
-
+  
       const lines = feedbackText.split('\n');
       let currentSection = '';
+      
       for (const line of lines) {
         if (line.startsWith('- Posture:')) {
           currentSection = 'posture';
           parsedFeedback.posture = line.replace('- Posture:', '').trim();
         } else if (line.startsWith('- Swing Path:')) {
-          currentSection = 'swing';
-          parsedFeedback.swing = line.replace('- Swing Path:', '').trim();
+          currentSection = 'swingPath';
+          parsedFeedback.swingPath = line.replace('- Swing Path:', '').trim();
         } else if (line.startsWith('- Impact:')) {
           currentSection = 'impact';
           parsedFeedback.impact = line.replace('- Impact:', '').trim();
@@ -145,10 +136,11 @@ export default function Home() {
         } else if (currentSection === 'recommendations' && line.trim().startsWith('-')) {
           parsedFeedback.recommendations.push(line.replace('-', '').trim());
         } else if (currentSection && line.trim()) {
+          // Append to current section if it's continuation text
           parsedFeedback[currentSection] += ' ' + line.trim();
         }
       }
-
+  
       setFeedback(parsedFeedback);
     } catch (err) {
       console.error('Error analyzing swing:', err);
@@ -257,25 +249,25 @@ export default function Home() {
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-medium text-gray-700">Posture</h4>
-                    <p className="text-gray-600">{feedback.posture}</p>
+                    <p className="text-gray-600 whitespace-pre-line">{feedback.posture}</p>
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-700">Swing Path</h4>
-                    <p className="text-gray-600">{feedback.swing}</p>
+                    <p className="text-gray-600 whitespace-pre-line">{feedback.swingPath}</p>
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-700">Impact</h4>
-                    <p className="text-gray-600">{feedback.impact}</p>
+                    <p className="text-gray-600 whitespace-pre-line">{feedback.impact}</p>
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-700">Follow Through</h4>
-                    <p className="text-gray-600">{feedback.followThrough}</p>
+                    <p className="text-gray-600 whitespace-pre-line">{feedback.followThrough}</p>
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-700">Recommendations</h4>
                     <ul className="list-disc pl-5 text-gray-600">
                       {feedback.recommendations.map((rec, index) => (
-                        <li key={index}>{rec}</li>
+                        <li key={index} className="whitespace-pre-line">{rec}</li>
                       ))}
                     </ul>
                   </div>
