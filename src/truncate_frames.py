@@ -39,7 +39,7 @@ def find_mean_frames(folders):
 
     # print(f"mean frames found: {mean_frames}") # Debugging
     mean_frames = total_frames / total_videos
-    return int(mean_frames), mat_files
+    return inty(mean_frames), mat_files
 
 def truncate_mat_files(mean_frames, file_paths):
     if mean_frames is None:
@@ -59,14 +59,11 @@ def truncate_mat_files(mean_frames, file_paths):
                     if value.shape[0] < mean_frames:
                         while value.shape[0] < mean_frames:
                             value = np.append(value, value[-1:], axis=0)
-                    else:
-                        # Truncate the data to the mean frames
-                        data_to_save[key] = value[:mean_frames, ...]
                     updated = True
+                    data_to_save[key] = value[:mean_frames, ...]
                 else:
                     # Copy other variables as is
                     data_to_save[key] = value
-
             if updated:
                 scipy.io.savemat(file_path, data_to_save, do_compression=True)
             else:
