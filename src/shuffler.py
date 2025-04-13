@@ -72,7 +72,7 @@ except Exception as e:
 
 
 def generate_shuffled_swings(num_samples=120):
-    """Generate hybrid swings with safety checks"""
+    """Generate hybrid swings, saving pose to .mat and metrics to .csv"""
     if not good_swings or not bad_swings:
         raise ValueError("No input data available for shuffling")
 
@@ -81,24 +81,36 @@ def generate_shuffled_swings(num_samples=120):
         donor_idx = random.randint(0, len(bad_swings) - 1)
 
         mixed_swing = np.copy(good_swings[base_idx])
-        metrics = np.ones(9)
+        metrics = np.ones(9)  # Initialize metrics array
 
         for metric_idx in range(9):
             if random.random() > 0.5:
                 mixed_swing[:, landmark_group[metric_idx], :] = \
                     bad_swings[donor_idx][:, landmark_group[metric_idx], :]
-                metrics[metric_idx] = 0
+                metrics[metric_idx] = 0  # Update metrics based on shuffling
 
+        # Define base filename
+        base_filename = f"shuf_swing_{i:03d}"
+        mat_filepath = OUTPUT_DIR / f"{base_filename}.mat"
+        csv_filepath = OUTPUT_DIR / f"{base_filename}.csv"
+
+        # Save only the pose data to the .mat file
+        # Assuming the original files also have a single key, we use 'pose'
         scipy.io.savemat(
-            OUTPUT_DIR / f"shuf_swing_{i:03d}.mat",
+            mat_filepath,
             {
-                'pose': mixed_swing,
-                'metrics': metrics,
-                'source_good': base_idx + 1,
-                'source_bad': donor_idx + 1
+                'pose': mixed_swing
             }
+            # Consider adding do_compression=True if originals are compressed
         )
-        print(f"Generated shuf_swing_{i:03d}.mat", end='\r')
+
+        # Save the metrics array to a .csv file
+        # Use fmt='%d' to save as integers (0 or 1)
+        np.savetxt(csv_filepath, metrics, delimiter=",", fmt='%d')
+
+        # Update print statement to reflect both files saved
+        print(f"Generated {base_filename}.mat and {base_filename}.csv", end='\r')
+    print("\n") # Add a newline after the loop finishes
 
 
 # Generate dataset
@@ -107,16 +119,31 @@ try:
     generate_shuffled_swings()
     print("\nGeneration completed successfully!")
 
-    # Verification
-    sample_file = next(OUTPUT_DIR.glob("shuf_swing_*.mat"), None)
-    if sample_file:
-        data = scipy.io.loadmat(sample_file)
-        print("\nSample file verification:")
-        print(f"File: {sample_file.name}")
-        print(f"Pose shape: {data['pose'].shape}")
-        print(f"Metrics: {data['metrics'].flatten()}")
+    # Verification (Optional: Update or remove as needed)
+    # This verification only checks the .mat file
+    sample_mat_file = next(OUTPUT_DIR.glob("shuf_swing_*.mat"), None)
+    if sample_mat_file:
+        data = scipy.io.loadmat(sample_mat_file)
+        print("\nSample .mat file verification:")
+        print(f"File: {sample_mat_file.name}")
+        if 'pose' in data:
+             print(f"Pose shape: {data['pose'].shape}")
+        else:
+             print(f"Key 'pose' not found in {sample_mat_file.name}")
+        # Add verification for the corresponding .csv file if desired
+        sample_csv_file = sample_mat_file.with_suffix('.csv')
+        if sample_csv_file.exists():
+            print(f"Corresponding CSV file found: {sample_csv_file.name}")
+            try:
+                loaded_metrics = np.loadtxt(sample_csv_file, delimiter=',', dtype=int)
+                print(f"Metrics from CSV: {loaded_metrics}")
+            except Exception as e:
+                print(f"Error loading CSV {sample_csv_file.name}: {e}")
+        else:
+            print(f"Warning: Corresponding CSV file not found for {sample_mat_file.name}")
+
     else:
-        print("Warning: No output files found")
+        print("Warning: No output .mat files found for verification")
 except Exception as e:
     print(f"\nError during generation: {str(e)}")
 
