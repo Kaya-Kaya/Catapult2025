@@ -17,16 +17,17 @@ class PoseData(Dataset):
         return len(self.input)
 
     def __getitem__(self, idx) -> Tuple[torch.Tensor, torch.Tensor]:
-        if isinstance(idx, slice):
-            mat_data = [loadmat(self.input[i]) for i in range(*idx.indices(len(self.input)))]
-            label_data = [loadmat(self.labels[i]) for i in range(*idx.indices(len(self.labels)))]
-            mat_data = [data['pose'] for data in mat_data]
-            label_data = [data['metric'] for data in label_data]
-            return (
-                torch.tensor(np.array(mat_data), device=self.device),
-                torch.tensor(np.array(label_data), device=self.device),
-            )
-        else:
-            mat_data = loadmat(self.input[idx])
-            label_data = loadmat(self.labels[idx])
-            return torch.tensor(mat_data, device=self.device), torch.tensor(label_data, device=self.device)
+        mat_data = loadmat(self.input[idx])
+        label_data = loadmat(self.labels[idx])
+        
+        # Replace 'data' and 'label' with the actual variable names in your .mat files
+        # For example, if your main variable in the input file is stored under the key "data"
+        # and in the label file under "label"
+        data_array = mat_data['pose']      # Adjust key name as necessary
+        label_array = label_data['metric']   # Adjust key name as necessary
+
+        # Convert the arrays to PyTorch tensors, specifying dtype if needed
+        data_tensor = torch.tensor(data_array, dtype=torch.float32, device=self.device)
+        label_tensor = torch.tensor(label_array, dtype=torch.float32, device=self.device)
+ 
+        return data_tensor, label_tensor
