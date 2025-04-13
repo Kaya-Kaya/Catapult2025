@@ -177,3 +177,6 @@ data
 
 Poses
 pose_landmarker.task
+test_data
+myenv
+output_frames

@@ -5,8 +5,9 @@ import csv
 import os
 from typing import List
 
-DATA_FOLDER = "Data"
+DATA_FOLDER = "Data/Bad Swings/Bad Driver Swings"
 POSE_FOLDER = "Poses"
+NUM_VIDEOS = 40
 
 def extract_poses(image_files: List[str]) -> None:
     mp_pose = mp.solutions.pose
@@ -41,10 +42,15 @@ def extract_poses(image_files: List[str]) -> None:
 
 def run():
     image_files = []
+    i = 0
     for root, _, files in os.walk(DATA_FOLDER):
         for file in files:
             relative_path = os.path.join(root, file)
             image_files.append(relative_path)
+
+        i += 1
+        if i == 40:
+            break
     
     extract_poses(image_files)
     
