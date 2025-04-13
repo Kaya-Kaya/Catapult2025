@@ -57,6 +57,7 @@ export default function Home() {
     
     setIsAnalyzing(true);
     setError(null);
+    setFeedback(null);
   
     try {
       const formData = new FormData();
@@ -80,7 +81,7 @@ export default function Home() {
       const prompt = `
       You are a golfing expert who understands the theory of optimal golf swing mechanics.
       You are also a golf coach who can explain the theory to a beginner golfer.
-      Do not be corny and be professional. Make your response 200 words max.
+      Do not be corny and be professional. Make your response 250 words max, but try not to write too little. Do not try to use quotation marks and any other text formatting (e.g. bolding or italics).
       Based on the following scores (each between 0.0 and 1.0), provide detailed and constructive feedback on the golfer's swing in the following structured format (follow it exactly):
       - Posture: [Feedback on posture]
       - Swing Path: [Feedback on swing path]
@@ -105,8 +106,57 @@ export default function Home() {
       });
       
       const feedbackText = result.text;
+      const parsedFeedback = {
+        posture: '',
+        swingPath: '',
+        impact: '',
+        followThrough: '',
+        recommendations: []
+      };
+      
       const lines = feedbackText.split('\n');
-      setFeedback(feedbackText);
+      let currentSection = '';
+      
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        
+        if (trimmedLine.startsWith('- Posture:')) {
+          currentSection = 'posture';
+          parsedFeedback.posture = trimmedLine.replace('- Posture:', '').trim();
+        } 
+        else if (trimmedLine.startsWith('- Swing Path:')) {
+          currentSection = 'swingPath';
+          parsedFeedback.swingPath = trimmedLine.replace('- Swing Path:', '').trim();
+        } 
+        else if (trimmedLine.startsWith('- Impact:')) {
+          currentSection = 'impact';
+          parsedFeedback.impact = trimmedLine.replace('- Impact:', '').trim();
+        } 
+        else if (trimmedLine.startsWith('- Follow Through:')) {
+          currentSection = 'followThrough';
+          parsedFeedback.followThrough = trimmedLine.replace('- Follow Through:', '').trim();
+        } 
+        else if (trimmedLine.startsWith('- Recommendations:')) {
+          currentSection = 'recommendations';
+        } 
+        else if (currentSection === 'recommendations' && /^\d+\./.test(trimmedLine)) {
+          // Match numbered recommendations (1., 2., etc.)
+          parsedFeedback.recommendations.push(trimmedLine.replace(/^\d+\./, '').trim());
+        }
+        else if (currentSection && currentSection !== 'recommendations' && trimmedLine) {
+          // Append continuation text to current section (except recommendations)
+          parsedFeedback[currentSection] += ' ' + trimmedLine;
+        }
+      }
+      
+      // Clean up each section by removing extra spaces
+      Object.keys(parsedFeedback).forEach(key => {
+        if (key !== 'recommendations') {
+          parsedFeedback[key] = parsedFeedback[key].replace(/\s+/g, ' ').trim();
+        }
+      });
+      
+      setFeedback(parsedFeedback);
     } catch (err) {
       console.error('Error analyzing swing:', err);
       setError('There was an error analyzing your swing. Please try again.');
@@ -127,7 +177,7 @@ export default function Home() {
         <nav className="flex justify-between items-center">
           <div className="flex items-center">
             <svg className="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12m-2.879 2.879a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
             </svg>
             <h1 className="ml-2 text-2xl font-bold text-gray-800">GolfMate</h1>
           </div>
@@ -142,7 +192,7 @@ export default function Home() {
           </p>
         </section>
 
-        <section className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <section className="max-w-5xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="md:flex">
             <div className="md:w-1/2 p-8">
               <h3 className="text-2xl font-semibold text-gray-800 mb-4">Upload Your Swing</h3>
@@ -183,7 +233,7 @@ export default function Home() {
                     disabled={isAnalyzing}
                     className={`mt-4 w-full py-3 px-4 rounded-md font-medium text-white ${
                       isAnalyzing ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
-                    } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition`}
+                    } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition cursor-pointer`}
                   >
                     {isAnalyzing ? 'Analyzing...' : 'Analyze My Swing'}
                   </button>
@@ -212,8 +262,45 @@ export default function Home() {
               
               {feedback && (
                 <div className="space-y-4">
+                  {feedback.posture && (
+                    <div>
+                      <h4 className="font-medium text-gray-700">Posture</h4>
+                      <p className="text-gray-600 whitespace-pre-line">{feedback.posture}</p>
+                    </div>
+                  )}
+                  
+                  {feedback.swingPath && (
+                    <div>
+                      <h4 className="font-medium text-gray-700">Swing Path</h4>
+                      <p className="text-gray-600 whitespace-pre-line">{feedback.swingPath}</p>
+                    </div>
+                  )}
+                  
+                  {feedback.impact && (
+                    <div>
+                      <h4 className="font-medium text-gray-700">Impact</h4>
+                      <p className="text-gray-600 whitespace-pre-line">{feedback.impact}</p>
+                    </div>
+                  )}
+                  
+                  {feedback.followThrough && (
+                    <div>
+                      <h4 className="font-medium text-gray-700">Follow Through</h4>
+                      <p className="text-gray-600 whitespace-pre-line">{feedback.followThrough}</p>
+                    </div>
+                  )}
+                  
                   <div>
-                    <p className="font-medium text-gray-700">{feedback}</p>
+                    <h4 className="font-medium text-gray-700">Recommendations</h4>
+                    {feedback.recommendations && feedback.recommendations.length > 0 ? (
+                      <ol className="list-decimal pl-5 text-gray-600 space-y-2">
+                        {feedback.recommendations.map((rec, index) => (
+                          <li key={index} className="whitespace-pre-line">{rec}</li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <p className="text-gray-600">No specific recommendations provided.</p>
+                    )}
                   </div>
                 </div>
               )}
