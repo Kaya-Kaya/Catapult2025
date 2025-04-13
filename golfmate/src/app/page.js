@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef } from 'react';
 import Head from 'next/head';
-import {GoogleGenAI} from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 
 const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
@@ -54,16 +54,16 @@ export default function Home() {
 
   const handleAnalyze = async () => {
     if (!file) return;
-    
+
     setIsAnalyzing(true);
     setError(null);
     setFeedback(null);
-  
+
     try {
       const formData = new FormData();
       formData.append('video', file);
 
-      /*const response = await fetch('/api/analyze-swing', {
+      const response = await fetch('/api/analyze-swing', {
         method: 'POST',
         body: formData,
       });
@@ -74,37 +74,49 @@ export default function Home() {
         throw new Error(data.error || 'Failed to analyze swing');
       }
 
-      const scores = data.scores;*/
-
+      const scores = data.scores || {};
       const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-  
+
+      // Construct the prompt dynamically using the actual scores
+      const scoreDescriptions = {
+        "chin motion": "The movement of the chin during the swing.",
+        "right arm motion": "The movement of the right arm during the swing.",
+        "left arm motion": "The movement of the left arm during the swing.",
+        "back motion": "The movement of the back during the swing.",
+        "pelvic motion": "The movement of the pelvis during the swing.",
+        "right knee motion": "The movement of the right knee during the swing.",
+        "left knee motion": "The movement of the left knee during the swing.",
+        "right feet motion": "The movement of the right foot during the swing.",
+        "left feet motion": "The movement of the left foot during the swing."
+      };
+
+      let scoresText = "Scores:\n";
+      for (const [metric, score] of Object.entries(scores)) {
+        scoresText += `${metric}: ${score.toFixed(2)}\n`;
+        if (scoreDescriptions[metric]) {
+          scoresText += `- Description: ${scoreDescriptions[metric]}\n`;
+        }
+      }
+
       const prompt = `
       You are a golfing expert who understands the theory of optimal golf swing mechanics.
       You are also a golf coach who can explain the theory to a beginner golfer.
-      Do not be corny and be professional. Make your response 250 words max, but try not to write too little. Do not try to use quotation marks and any other text formatting (e.g. bolding or italics).
+      Do not be corny and be professional. Make your response 250 words max, but try not to write too little. Do not try to use quotation marks and any other text formatting (e.g. bolding or italics). Do not say any of the actual scores given to you. 
       Based on the following scores (each between 0.0 and 1.0), provide specific, meaningful, detailed, and constructive feedback on the golfer's swing in the following structured format (follow it exactly):
       - Posture: [Feedback on posture]
       - Swing Path: [Feedback on swing path]
       - Impact: [Feedback on impact]
       - Follow Through: [Feedback on follow-through]
       - Recommendations: [List of 3-5 specific recommendations to improve the swing]
-  
-      Scores:
-      Ball Position: 1.0
-      - Description: The position of the ball in relation to the golfer's stance.
-      Drive Stance: 1.0
-      - Description: The stance of the golfer when using a driver.
-      Elbow Posture Backswing: 1.0
-      - Description: The position of the elbows during the backswing.
-      Elbow Posture Frontswing: 1.0
-      - Description: The position of the elbows during the front swing.
+
+      ${scoresText}
       `;
-  
+
       const result = await ai.models.generateContent({
         model: "gemini-2.0-flash",
         contents: prompt,
       });
-      
+
       const feedbackText = result.text;
       const parsedFeedback = {
         posture: '',
@@ -113,13 +125,13 @@ export default function Home() {
         followThrough: '',
         recommendations: []
       };
-      
+
       const lines = feedbackText.split('\n');
       let currentSection = '';
-      
+
       for (const line of lines) {
         const trimmedLine = line.trim();
-        
+
         if (trimmedLine.startsWith('- Posture:')) {
           currentSection = 'posture';
           parsedFeedback.posture = trimmedLine.replace('- Posture:', '').trim();
@@ -140,22 +152,19 @@ export default function Home() {
           currentSection = 'recommendations';
         } 
         else if (currentSection === 'recommendations' && /^\d+\./.test(trimmedLine)) {
-          // Match numbered recommendations (1., 2., etc.)
           parsedFeedback.recommendations.push(trimmedLine.replace(/^\d+\./, '').trim());
         }
         else if (currentSection && currentSection !== 'recommendations' && trimmedLine) {
-          // Append continuation text to current section (except recommendations)
           parsedFeedback[currentSection] += ' ' + trimmedLine;
         }
       }
-      
-      // Clean up each section by removing extra spaces
+
       Object.keys(parsedFeedback).forEach(key => {
         if (key !== 'recommendations') {
           parsedFeedback[key] = parsedFeedback[key].replace(/\s+/g, ' ').trim();
         }
       });
-      
+
       setFeedback(parsedFeedback);
     } catch (err) {
       console.error('Error analyzing swing:', err);
