@@ -6,6 +6,7 @@ import sys
 
 def find_mean_frames(folders):
     total_frames = 0
+    total_videos = 0
     mat_files = []
     for folder in folders:
         current_files = glob.glob(os.path.join(folder, '*.mat'))
@@ -20,7 +21,8 @@ def find_mean_frames(folders):
                 for key, value in mat_data.items():
                     if isinstance(value, np.ndarray) and value.ndim >= 3:
                         frames = value.shape[0]
-                        total_frames += len(frames)
+                        total_frames += frames
+                        total_videos += 1
                         # print(f"File: {os.path.basename(file_path)}, Frames: {frames}") # Debugging
                         break # Assume first suitable array is the target
                 else:
@@ -36,7 +38,8 @@ def find_mean_frames(folders):
         return None, []
 
     # print(f"mean frames found: {mean_frames}") # Debugging
-    return (total_frames / len(mat_data.items())), mat_files
+    mean_frames = total_frames / total_videos
+    return int(mean_frames), mat_files
 
 def truncate_mat_files(mean_frames, file_paths):
     if mean_frames is None:
@@ -73,7 +76,7 @@ def truncate_mat_files(mean_frames, file_paths):
             print(f"Error processing or saving {file_path}: {e}", file=sys.stderr)
 
 def main():
-    base_pose_folder = '../Poses' # Assuming script is run from workspace root
+    base_pose_folder = os.path.join(os.curdir,'Poses') # Assuming script is run from workspace root
     good_folder = os.path.join(base_pose_folder, 'Good')
     bad_folder = os.path.join(base_pose_folder, 'Bad')
 
