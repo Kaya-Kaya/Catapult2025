@@ -39,7 +39,7 @@ def find_mean_frames(folders):
 
     # print(f"mean frames found: {mean_frames}") # Debugging
     mean_frames = total_frames / total_videos
-    return inty(mean_frames), mat_files
+    return int(mean_frames), mat_files
 
 def truncate_mat_files(mean_frames, file_paths):
     if mean_frames is None:
