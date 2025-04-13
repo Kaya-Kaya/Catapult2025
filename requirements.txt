@@ -5,7 +5,6 @@ opencv-python
 mediapipe
 numpy
 torch
-torchvision
 scipy
 google-generativeai
 Flask
