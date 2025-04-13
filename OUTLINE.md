@@ -1,4 +1,4 @@
-# SwingAI
+# GolfMate
 
 ## Outline
 Golf Assistant with the following workflow:
