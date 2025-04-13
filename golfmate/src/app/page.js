@@ -168,7 +168,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
       <Head>
-        <title>GolfMate - AI Golf Swing Analysis</title>
+        <title>Golfmate - AI Golf Swing Analysis</title>
         <meta name="description" content="Improve your golf swing with AI-powered analysis" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -179,7 +179,7 @@ export default function Home() {
             <svg className="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12m-2.879 2.879a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
             </svg>
-            <h1 className="ml-2 text-2xl font-bold text-gray-800">GolfMate</h1>
+            <h1 className="ml-2 text-2xl font-bold text-gray-800">Golfmate</h1>
           </div>
         </nav>
       </header>
@@ -311,7 +311,7 @@ export default function Home() {
 
       <footer className="bg-gray-800 text-white mt-20 py-6">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-gray-400">© {new Date().getFullYear()} GolfMate. All rights reserved.</p>
+          <p className="text-gray-400">© {new Date().getFullYear()} Golfmate. All rights reserved.</p>
         </div>
       </footer>
     </div>
