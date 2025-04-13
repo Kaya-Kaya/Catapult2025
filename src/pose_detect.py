@@ -1,59 +1,48 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-import csv
+import pandas as pd
 import os
-from typing import List
+import sys
+from scipy.io import savemat
 
-DATA_FOLDER = "Data/Bad Swings/Bad Driver Swings"
+DATA_FOLDER = sys.argv[1]
 POSE_FOLDER = "Poses"
-NUM_VIDEOS = 40
 
-def extract_poses(image_files: List[str]) -> None:
-    mp_pose = mp.solutions.pose
+mp_pose = mp.solutions.pose
 
-    with mp_pose.Pose(
+with mp_pose.Pose(
         static_image_mode=True,
-        model_complexity=2,
+        model_complexity=1,
         enable_segmentation=True,
         min_detection_confidence=0.5) as pose:
+    for video_name in os.listdir(DATA_FOLDER):
+        video_path = os.path.join(DATA_FOLDER, video_name)
+        if not os.path.isdir(video_path):
+            continue
 
-        for idx, file in enumerate(image_files):
-            image = cv2.imread(file)
-            image_height, image_width, _ = image.shape
+        frame_files = sorted(os.listdir(video_path)) 
+        all_landmarks = []
+    
+        for frame in frame_files:
+            frame_path = os.path.join(video_path, frame)
+        
+            image = cv2.imread(frame_path)
             # Convert the BGR image to RGB before processing.
             results = pose.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+        
+            if results.pose_landmarks:
+                landmarks = results.pose_landmarks.landmark
+                frame_data = np.array([[lm.x, lm.y, lm.z, lm.visibility] for lm in landmarks])
+            else:
+                frame_data = np.full((33, 4), np.nan)
 
-            if not results.pose_landmarks:
-                continue
-            
-            # Prepare CSV file to write landmarks
-            csv_directory = os.path.join(POSE_FOLDER, file[file.index("/") + 1:file.rindex("/")])
-            os.makedirs(csv_directory, exist_ok=True)
-            csv_file = os.path.join(csv_directory, file[file.rindex("/") + 1:-4]) + ".csv"
-            with open(csv_file, mode='w', newline='') as file:
-                csv_writer = csv.writer(file)
-                csv_writer.writerow(['Landmark', 'X', 'Y', 'Z', 'Visibility'])  # Header row
+            all_landmarks.append(frame_data)
 
-                # Write each landmark's data
-                for i, landmark in enumerate(results.pose_landmarks.landmark):
-                    csv_writer.writerow([i, landmark.x, landmark.y, landmark.z, landmark.visibility])
+        if all_landmarks:
+            landmarks_array = np.stack(all_landmarks) # Shape: (# of frames, 33, 4)
+            os.makedirs(POSE_FOLDER, exist_ok=True)
+            save_path = os.path.join(POSE_FOLDER, f'{video_name}.mat')
+            savemat(save_path, {video_name: landmarks_array})
+            print(f"Saved: {video_name}.mat with shape {landmarks_array.shape}")
 
-
-def run():
-    image_files = []
-    i = 0
-    for root, _, files in os.walk(DATA_FOLDER):
-        for file in files:
-            relative_path = os.path.join(root, file)
-            image_files.append(relative_path)
-
-        i += 1
-        if i == 40:
-            break
-    
-    extract_poses(image_files)
-    
-
-if __name__ == "__main__":
-    run()

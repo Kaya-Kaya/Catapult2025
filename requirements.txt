@@ -5,4 +5,5 @@ opencv-python
 mediapipe
 numpy
 torch
+scipy
 google-generativeai

@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# Vim undo
+*.un~
+
 # Distribution / packaging
 .Python
 build/
@@ -177,6 +180,9 @@ data
 
 Poses
 pose_landmarker.task
+<<<<<<< HEAD
 test_data
 myenv
 output_frames
+=======
+>>>>>>> df04e5a (Outputs are now one matfile per video (hopefully it works))
