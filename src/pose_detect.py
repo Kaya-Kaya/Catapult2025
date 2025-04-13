@@ -27,8 +27,11 @@ def process_video(video_name):
         enable_segmentation=True,
         min_detection_confidence=0.5
     ) as pose:
-
+        i = 0
         for frame in frame_files:
+            i += 1
+            if i % 2 != 0:
+                continue
             frame_path = os.path.join(video_path, frame)
             image = cv2.imread(frame_path)
             if image is None:

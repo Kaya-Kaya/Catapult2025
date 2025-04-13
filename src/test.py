@@ -5,8 +5,8 @@ import mediapipe as mp
 import matplotlib.animation as animation
 from mpl_toolkits.mplot3d import Axes3D
 
-data = loadmat('../Poses/Untitled00013112.mat')
-landmarks = data['Untitled00013112']          # Variable name matches .mat key
+data = loadmat('../Poses/Good Iron Swing - Back 10.mat')
+landmarks = data['Good Iron Swing - Back 10']          # Variable name matches .mat key
 
 num_frames = landmarks.shape[0]
 

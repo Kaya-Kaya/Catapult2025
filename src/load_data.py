@@ -5,7 +5,7 @@ import os
 import shutil
 
 DATASET_NAME = "dardarman1/golfing-posture"
-SUBPATH = "archive/CUSTOM DATASET/BACK VIEW"
+SUBPATH = "Good Iron Swings - Back"
 FRAMES_OUTPUT = "Data"
 
 def download_data() -> str:
