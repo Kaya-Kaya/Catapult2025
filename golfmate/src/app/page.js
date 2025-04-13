@@ -82,10 +82,10 @@ export default function Home() {
       You are also a golf coach who can explain the theory to a beginner golfer.
       Do not be corny and be professional. Make your response 200 words max.
       Based on the following scores (each between 0.0 and 1.0), provide detailed and constructive feedback on the golfer's swing in the following structured format (follow it exactly):
-      - Posture: [Feedback on posture]\\n
-      - Swing Path: [Feedback on swing path]\\n
-      - Impact: [Feedback on impact]\\n
-      - Follow Through: [Feedback on follow-through]\\n
+      - Posture: [Feedback on posture]
+      - Swing Path: [Feedback on swing path]
+      - Impact: [Feedback on impact]
+      - Follow Through: [Feedback on follow-through]
       - Recommendations: [List of 3-5 specific recommendations to improve the swing]
   
       Scores:
@@ -105,43 +105,8 @@ export default function Home() {
       });
       
       const feedbackText = result.text;
-      
-      // Parse the feedback into sections
-      const parsedFeedback = {
-        posture: '',
-        swingPath: '',
-        impact: '',
-        followThrough: '',
-        recommendations: []
-      };
-  
       const lines = feedbackText.split('\n');
-      let currentSection = '';
-      
-      for (const line of lines) {
-        if (line.startsWith('- Posture:')) {
-          currentSection = 'posture';
-          parsedFeedback.posture = line.replace('- Posture:', '').trim();
-        } else if (line.startsWith('- Swing Path:')) {
-          currentSection = 'swingPath';
-          parsedFeedback.swingPath = line.replace('- Swing Path:', '').trim();
-        } else if (line.startsWith('- Impact:')) {
-          currentSection = 'impact';
-          parsedFeedback.impact = line.replace('- Impact:', '').trim();
-        } else if (line.startsWith('- Follow Through:')) {
-          currentSection = 'followThrough';
-          parsedFeedback.followThrough = line.replace('- Follow Through:', '').trim();
-        } else if (line.startsWith('- Recommendations:')) {
-          currentSection = 'recommendations';
-        } else if (currentSection === 'recommendations' && line.trim().startsWith('-')) {
-          parsedFeedback.recommendations.push(line.replace('-', '').trim());
-        } else if (currentSection && line.trim()) {
-          // Append to current section if it's continuation text
-          parsedFeedback[currentSection] += ' ' + line.trim();
-        }
-      }
-  
-      setFeedback(parsedFeedback);
+      setFeedback(feedbackText);
     } catch (err) {
       console.error('Error analyzing swing:', err);
       setError('There was an error analyzing your swing. Please try again.');
@@ -248,28 +213,7 @@ export default function Home() {
               {feedback && (
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-medium text-gray-700">Posture</h4>
-                    <p className="text-gray-600 whitespace-pre-line">{feedback.posture}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-700">Swing Path</h4>
-                    <p className="text-gray-600 whitespace-pre-line">{feedback.swingPath}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-700">Impact</h4>
-                    <p className="text-gray-600 whitespace-pre-line">{feedback.impact}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-700">Follow Through</h4>
-                    <p className="text-gray-600 whitespace-pre-line">{feedback.followThrough}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-700">Recommendations</h4>
-                    <ul className="list-disc pl-5 text-gray-600">
-                      {feedback.recommendations.map((rec, index) => (
-                        <li key={index} className="whitespace-pre-line">{rec}</li>
-                      ))}
-                    </ul>
+                    <p className="font-medium text-gray-700">{feedback}</p>
                   </div>
                 </div>
               )}
