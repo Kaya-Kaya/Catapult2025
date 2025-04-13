@@ -5,7 +5,7 @@ import csv
 import os
 from typing import List
 
-DATA_FOLDER = "Data"
+DATA_FOLDER = "Data/Bad Swings/Bad Driver Swings"
 POSE_FOLDER = "Poses"
 
 def extract_poses(image_files: List[str]) -> None:
