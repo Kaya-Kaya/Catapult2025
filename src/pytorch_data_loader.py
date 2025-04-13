@@ -4,6 +4,14 @@ from torchvision import datasets
 from torchvision.transforms import ToTensor
 import matplotlib.pyplot as plt
 
+class CustomImageDataset(Dataset):
+    def __init__(self, root_dir, transform=None):
+        self.root_dir = root_dir
+        self.transform = transform
+        self.data = datasets.FashionMNIST(root=root_dir, train=True, download=True)
+    def __len__(self):
+        return len(self.data)
+    def __getitem__(self, idx):
 
 training_data = datasets.FashionMNIST(
     root="data",
@@ -29,7 +37,7 @@ labels_map = {
     6: "Shirt",
     7: "Sneaker",
     8: "Bag",
-    9: "Ankle Boot",
+    9: "Ankle Boot", 
 }
 figure = plt.figure(figsize=(8, 8))
 cols, rows = 3, 3
