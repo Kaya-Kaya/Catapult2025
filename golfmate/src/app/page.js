@@ -82,7 +82,7 @@ export default function Home() {
       You are a golfing expert who understands the theory of optimal golf swing mechanics.
       You are also a golf coach who can explain the theory to a beginner golfer.
       Do not be corny and be professional. Make your response 250 words max, but try not to write too little. Do not try to use quotation marks and any other text formatting (e.g. bolding or italics).
-      Based on the following scores (each between 0.0 and 1.0), provide detailed and constructive feedback on the golfer's swing in the following structured format (follow it exactly):
+      Based on the following scores (each between 0.0 and 1.0), provide specific, meaningful, detailed, and constructive feedback on the golfer's swing in the following structured format (follow it exactly):
       - Posture: [Feedback on posture]
       - Swing Path: [Feedback on swing path]
       - Impact: [Feedback on impact]
@@ -264,34 +264,34 @@ export default function Home() {
                 <div className="space-y-4">
                   {feedback.posture && (
                     <div>
-                      <h4 className="font-medium text-gray-700">Posture</h4>
+                      <h4 className="font-bold text-gray-700">Posture</h4>
                       <p className="text-gray-600 whitespace-pre-line">{feedback.posture}</p>
                     </div>
                   )}
                   
                   {feedback.swingPath && (
                     <div>
-                      <h4 className="font-medium text-gray-700">Swing Path</h4>
+                      <h4 className="font-bold text-gray-700">Swing Path</h4>
                       <p className="text-gray-600 whitespace-pre-line">{feedback.swingPath}</p>
                     </div>
                   )}
                   
                   {feedback.impact && (
                     <div>
-                      <h4 className="font-medium text-gray-700">Impact</h4>
+                      <h4 className="font-bold text-gray-700">Impact</h4>
                       <p className="text-gray-600 whitespace-pre-line">{feedback.impact}</p>
                     </div>
                   )}
                   
                   {feedback.followThrough && (
                     <div>
-                      <h4 className="font-medium text-gray-700">Follow Through</h4>
+                      <h4 className="font-bold text-gray-700">Follow Through</h4>
                       <p className="text-gray-600 whitespace-pre-line">{feedback.followThrough}</p>
                     </div>
                   )}
                   
                   <div>
-                    <h4 className="font-medium text-gray-700">Recommendations</h4>
+                    <h4 className="font-bold text-gray-700">Recommendations</h4>
                     {feedback.recommendations && feedback.recommendations.length > 0 ? (
                       <ol className="list-decimal pl-5 text-gray-600 space-y-2">
                         {feedback.recommendations.map((rec, index) => (
