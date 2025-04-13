@@ -176,8 +176,6 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-Data
-
 pose_landmarker.task
 test_data
 myenv
