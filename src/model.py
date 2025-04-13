@@ -1,7 +1,6 @@
 import torch
 from torch import nn
 
-BATCH_DIM = 32
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class PoseScoringModel(nn.Module):
@@ -13,7 +12,7 @@ class PoseScoringModel(nn.Module):
         self.fc = nn.Linear(hidden_size, num_classes)
 
     def forward(self, X):
-        h0 = torch.zeros(self.num_layers, X.size(BATCH_DIM), self.hidden_size).to(device)
+        h0 = torch.zeros(self.num_layers, X.size(0), self.hidden_size).to(device)
         out, _ = self.gru(X, h0)
         # out: batch x time x hidden
         out = out[:, -1, :]
