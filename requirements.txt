@@ -7,3 +7,7 @@ numpy
 torch
 scipy
 google-generativeai
+Flask
+scipy
+pytest-shutil
+matplotlib
