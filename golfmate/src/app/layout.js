@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "SwingAI",
+  title: "GolfMate",
   description: "Catapult 2025",
 };
 

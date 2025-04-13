@@ -4,8 +4,8 @@ import process_video
 import os
 import shutil
 
-DATASET_NAME = "rakshitgirish/golf-pose"
-SUBPATH = "CUSTOM DATASET/SIDE VIEW"
+DATASET_NAME = "dardarman1/golfing-posture"
+SUBPATH = "CUSTOM DATASET/BACK VIEW"
 FRAMES_OUTPUT = "Data"
 
 def download_data() -> str:
