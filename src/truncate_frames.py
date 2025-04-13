@@ -4,8 +4,9 @@ import scipy.io
 import glob
 import sys
 
-def find_min_frames(folders):
-    min_frames = float('inf')
+def find_mean_frames(folders):
+    total_frames = 0
+    total_videos = 0
     mat_files = []
     for folder in folders:
         current_files = glob.glob(os.path.join(folder, '*.mat'))
@@ -20,7 +21,8 @@ def find_min_frames(folders):
                 for key, value in mat_data.items():
                     if isinstance(value, np.ndarray) and value.ndim >= 3:
                         frames = value.shape[0]
-                        min_frames = min(min_frames, frames)
+                        total_frames += frames
+                        total_videos += 1
                         # print(f"File: {os.path.basename(file_path)}, Frames: {frames}") # Debugging
                         break # Assume first suitable array is the target
                 else:
@@ -31,19 +33,20 @@ def find_min_frames(folders):
     if not mat_files:
         print("Error: No .mat files found in any specified folder.", file=sys.stderr)
         return None, []
-    if min_frames == float('inf'):
+    if total_frames == 0:
         print("Error: Could not determine frame count from any .mat file.", file=sys.stderr)
         return None, []
 
-    # print(f"Minimum frames found: {min_frames}") # Debugging
-    return min_frames, mat_files
+    # print(f"mean frames found: {mean_frames}") # Debugging
+    mean_frames = total_frames / total_videos
+    return int(mean_frames), mat_files
 
-def truncate_mat_files(min_frames, file_paths):
-    if min_frames is None:
+def truncate_mat_files(mean_frames, file_paths):
+    if mean_frames is None:
         print("Aborting truncation due to previous errors.", file=sys.stderr)
         return
 
-    print(f"Truncating all files to {min_frames} frames...")
+    print(f"Truncating all files to {mean_frames} frames...")
     for file_path in file_paths:
         try:
             mat_data = scipy.io.loadmat(file_path)
@@ -51,14 +54,16 @@ def truncate_mat_files(min_frames, file_paths):
             data_to_save = {}
             # Find the key of the data array again and truncate
             for key, value in mat_data.items():
-                if isinstance(value, np.ndarray) and value.ndim >= 3 and value.shape[0] >= min_frames:
+                if isinstance(value, np.ndarray) and value.ndim >= 3:
                     # print(f"Truncating {os.path.basename(file_path)} ({value.shape[0]} -> {min_frames} frames)") # Debugging
-                    data_to_save[key] = value[:min_frames, ...]
+                    if value.shape[0] < mean_frames:
+                        while value.shape[0] < mean_frames:
+                            value = np.append(value, value[-1:], axis=0)
                     updated = True
+                    data_to_save[key] = value[:mean_frames, ...]
                 else:
                     # Copy other variables as is
                     data_to_save[key] = value
-
             if updated:
                 scipy.io.savemat(file_path, data_to_save, do_compression=True)
             else:
@@ -68,7 +73,7 @@ def truncate_mat_files(min_frames, file_paths):
             print(f"Error processing or saving {file_path}: {e}", file=sys.stderr)
 
 def main():
-    base_pose_folder = '../Poses' # Assuming script is run from workspace root
+    base_pose_folder = os.path.join(os.curdir,'Poses') # Assuming script is run from workspace root
     good_folder = os.path.join(base_pose_folder, 'Good')
     bad_folder = os.path.join(base_pose_folder, 'Bad')
 
@@ -79,10 +84,10 @@ def main():
         print(f"Error: Directory not found: {bad_folder}", file=sys.stderr)
         return
 
-    min_frames, mat_files = find_min_frames([good_folder, bad_folder])
+    mean_frames, mat_files = find_mean_frames([good_folder, bad_folder])
 
-    if min_frames is not None:
-        truncate_mat_files(min_frames, mat_files)
+    if mean_frames is not None:
+        truncate_mat_files(mean_frames, mat_files)
         print("Truncation complete.")
     else:
         print("Truncation failed.")
