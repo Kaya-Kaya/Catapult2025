@@ -421,7 +421,7 @@ def train_model(data_dir, num_epochs=50, batch_size=16, learning_rate=0.001, val
 if __name__ == "__main__":
     script_dir = Path(__file__).parent.resolve()
     base_dir = script_dir.parent # Workspace root
-    data_directory = base_dir / "data"
+    data_directory = base_dir / "data_og"
 
     # --- Hyperparameters ---
     EPOCHS = 50
