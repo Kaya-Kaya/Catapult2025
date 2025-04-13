@@ -5,7 +5,7 @@ import os
 import shutil
 
 DATASET_NAME = "dardarman1/golfing-posture"
-SUBPATH = "CUSTOM DATASET/BACK VIEW"
+SUBPATH = "archive/CUSTOM DATASET/BACK VIEW"
 FRAMES_OUTPUT = "Data"
 
 def download_data() -> str:
@@ -26,7 +26,7 @@ def run() -> None:
     full_dataset_path = download_data()
     data_path = Path(full_dataset_path) / Path(SUBPATH)
     process_data(data_path)
-    shutil.rmtree(full_dataset_path)
+    #shutil.rmtree(full_dataset_path)
 
 if __name__ == "__main__":
     run()
